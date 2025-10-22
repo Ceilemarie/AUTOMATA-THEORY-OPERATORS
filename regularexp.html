@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Regular Expressions - AutoVerse</title>
+    <link href="https://fonts.googleapis.com/css2?family=Disket+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: radial-gradient(circle at 20% 30%, #BB63FF 0%, transparent 40%),
+                        radial-gradient(circle at 80% 20%, #5B58EB 0%, transparent 35%),
+                        radial-gradient(circle at 50% 80%, #56E1E9 0%, transparent 40%),
+                        linear-gradient(180deg, #112C71 0%, #0A2353 100%);
+            color: #eaf6ff;
+            font-family: 'Disket Mono', monospace;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            color: white;
+            text-shadow: 0 0 10px rgba(86,225,233,0.8);
+            margin-bottom: 30px;
+        }
+
+        .regex-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .regex-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+        }
+
+        .regex-input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #fff;
+            font-family: 'Disket Mono', monospace;
+        }
+
+        .regex-button {
+            background: linear-gradient(90deg, #56E1E9, #BB63FF);
+            color: #07203a;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Disket Mono', monospace;
+            margin: 5px;
+        }
+
+        .regex-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(187, 99, 255, 0.3);
+        }
+
+        .result-box {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(86, 225, 233, 0.1);
+            border-radius: 8px;
+            font-family: 'Consolas', monospace;
+        }
+
+        .pattern-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 15px 0;
+        }
+
+        .pattern-button {
+            background: rgba(255, 255, 255, 0.1);
+            color: #56E1E9;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Disket Mono', monospace;
+            transition: all 0.2s ease;
+        }
+
+        .pattern-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        nav {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+
+        nav a {
+            padding: 10px 20px;
+            background: linear-gradient(90deg, #56E1E9, #BB63FF);
+            color: #07203a;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        nav a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(187, 99, 255, 0.3);
+        }
+
+        .example-box {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .help-text {
+            color: #bfe9ff;
+            font-size: 0.9em;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav><a href="index.html">← Back</a></nav>
+        <h1>Regular Expressions Explorer</h1>
+
+        <!-- Pattern Tester -->
+        <div class="regex-card">
+            <h2>Pattern Tester</h2>
+            <div class="input-group">
+                <input type="text" id="regexPattern" class="regex-input" placeholder="Enter regex pattern (e.g., ^[a-z]+$)">
+                <input type="text" id="testString" class="regex-input" placeholder="Enter test string">
+                <button onclick="testPattern()" class="regex-button">Test Match</button>
+            </div>
+            <div class="pattern-buttons">
+                <button onclick="insertPattern('^[a-z]+$')" class="pattern-button">Lowercase letters</button>
+                <button onclick="insertPattern('^[A-Z]+$')" class="pattern-button">Uppercase letters</button>
+                <button onclick="insertPattern('^[0-9]+$')" class="pattern-button">Numbers only</button>
+                <button onclick="insertPattern('^[a-zA-Z0-9]+$')" class="pattern-button">Alphanumeric</button>
+                <button onclick="insertPattern('^.{5}$')" class="pattern-button">Exactly 5 chars</button>
+                <button onclick="insertPattern('^(a|b)*$')" class="pattern-button">Only a's and b's</button>
+            </div>
+            <div id="patternResult" class="result-box">Results will appear here...</div>
+        </div>
+
+        <!-- String Generator -->
+        <div class="regex-card">
+            <h2>String Generator</h2>
+            <div class="input-group">
+                <input type="text" id="genPattern" class="regex-input" placeholder="Enter pattern to generate strings (e.g., (a|b)*abb)">
+                <button onclick="generateStrings()" class="regex-button">Generate Strings</button>
+            </div>
+            <div class="pattern-buttons">
+                <button onclick="insertGenPattern('(a|b)*')" class="pattern-button">a's and b's</button>
+                <button onclick="insertGenPattern('(0|1)*')" class="pattern-button">Binary</button>
+                <button onclick="insertGenPattern('a*b+')" class="pattern-button">a's followed by b's</button>
+            </div>
+            <div id="genResult" class="result-box">Generated strings will appear here...</div>
+        </div>
+
+        <!-- Language Properties -->
+        <div class="regex-card">
+            <h2>Language Properties</h2>
+            <div class="input-group">
+                <input type="text" id="langPattern" class="regex-input" placeholder="Enter pattern to analyze (e.g., (ab)*">
+                <button onclick="analyzePattern()" class="regex-button">Analyze</button>
+            </div>
+            <div id="langResult" class="result-box">Analysis will appear here...</div>
+        </div>
+
+        <!-- Common Patterns -->
+        <div class="regex-card">
+            <h2>Common Regex Patterns</h2>
+            <div class="example-box">
+                <h3>Basic Patterns:</h3>
+                <pre>
+^[a-z]+$     - Only lowercase letters
+^[A-Z]+$     - Only uppercase letters
+^[0-9]+$     - Only numbers
+^.{n}$       - Exactly n characters
+[aeiou]      - Any vowel
+[^aeiou]     - Any non-vowel
+                </pre>
+            </div>
+            <div class="example-box">
+                <h3>Automata Patterns:</h3>
+                <pre>
+(a|b)*       - Any string of a's and b's
+(a|b)*abb    - Any string ending with 'abb'
+a*b*         - All a's followed by all b's
+(aa|bb)*     - Pairs of a's or pairs of b's
+                </pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Test if a string matches a pattern
+        function testPattern() {
+            const pattern = document.getElementById('regexPattern').value;
+            const testStr = document.getElementById('testString').value;
+            const resultDiv = document.getElementById('patternResult');
+
+            try {
+                const regex = new RegExp(pattern);
+                const isMatch = regex.test(testStr);
+                const matches = testStr.match(regex) || [];
+
+                resultDiv.innerHTML = `
+                    <span style="color: ${isMatch ? '#56E1E9' : '#ff6b6b'}">
+                        ${isMatch ? '✓ Match found!' : '✗ No match'}
+                    </span><br>
+                    ${isMatch ? `Matched: ${matches.join(', ')}` : ''}
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `Error: ${error.message}`;
+                resultDiv.style.color = '#ff6b6b';
+            }
+        }
+
+        // Insert pattern into input
+        function insertPattern(pattern) {
+            document.getElementById('regexPattern').value = pattern;
+        }
+
+        // Insert pattern into generator input
+        function insertGenPattern(pattern) {
+            document.getElementById('genPattern').value = pattern;
+        }
+
+        // Generate strings that match the pattern
+        function generateStrings() {
+            const pattern = document.getElementById('genPattern').value;
+            const resultDiv = document.getElementById('genResult');
+            
+            try {
+                // Simple string generation for basic patterns
+                const examples = generateExampleStrings(pattern);
+                resultDiv.innerHTML = `
+                    <div>Examples matching pattern:</div>
+                    <div style="color: #56E1E9">${examples.join(', ')}</div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `Error: ${error.message}`;
+                resultDiv.style.color = '#ff6b6b';
+            }
+        }
+
+        // Analyze pattern properties
+        function analyzePattern() {
+            const pattern = document.getElementById('langPattern').value;
+            const resultDiv = document.getElementById('langResult');
+            
+            try {
+                const analysis = analyzeRegexPattern(pattern);
+                resultDiv.innerHTML = `
+                    <div>Pattern Analysis:</div>
+                    <div style="color: #56E1E9">
+                        ${analysis.join('<br>')}
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `Error: ${error.message}`;
+                resultDiv.style.color = '#ff6b6b';
+            }
+        }
+
+        // Helper function to generate example strings
+        function generateExampleStrings(pattern) {
+            const examples = [];
+            
+            // Handle basic patterns
+            if (pattern === '(a|b)*') {
+                examples.push('', 'a', 'b', 'ab', 'ba', 'aab', 'aba');
+            } else if (pattern === '(0|1)*') {
+                examples.push('', '0', '1', '01', '10', '001', '110');
+            } else if (pattern === 'a*b+') {
+                examples.push('b', 'ab', 'aab', 'aaab', 'bb', 'abb');
+            } else {
+                examples.push('Pattern too complex for automatic generation');
+            }
+            
+            return examples;
+        }
+
+        // Helper function to analyze regex pattern
+        function analyzeRegexPattern(pattern) {
+            const analysis = [];
+            
+            // Check for common patterns
+            if (pattern.includes('*')) {
+                analysis.push('✓ Language is infinite');
+            }
+            if (pattern.includes('|')) {
+                analysis.push('✓ Language contains alternatives');
+            }
+            if (pattern.includes('+')) {
+                analysis.push('✓ Language requires at least one occurrence');
+            }
+            if (pattern.startsWith('^') && pattern.endsWith('$')) {
+                analysis.push('✓ Pattern requires exact match');
+            }
+            
+            // Add theoretical properties
+            analysis.push('✓ Regular language');
+            analysis.push('✓ Can be recognized by a finite automaton');
+            
+            return analysis;
+        }
+    </script>
+</body>
+</html>
