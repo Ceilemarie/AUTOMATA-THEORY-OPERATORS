@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Finite State Automaton - AutoVerse</title>
+  <link href="https://fonts.googleapis.com/css2?family=Disket+Mono:wght@400;700&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at 20% 30%, #BB63FF 0%, transparent 40%),
+                  radial-gradient(circle at 80% 20%, #5B58EB 0%, transparent 35%),
+                  radial-gradient(circle at 50% 80%, #56E1E9 0%, transparent 40%),
+                  linear-gradient(180deg, #112C71 0%, #0A2353 100%);
+      color: #eaf6ff;
+      font-family: 'Disket Mono', monospace;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2.5em;
+      color: white;
+      text-shadow: 0 0 10px rgba(86,225,233,0.8);
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 1.2em;
+      color: #56E1E9;
+      margin-bottom: 30px;
+    }
+
+    nav {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 1000;
+    }
+
+    nav a {
+      padding: 10px 20px;
+      background: linear-gradient(90deg, #56E1E9, #BB63FF);
+      color: #07203a;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+
+    nav a:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(187, 99, 255, 0.3);
+    }
+
+    .glass-box {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 30px;
+      margin-bottom: 30px;
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+    }
+
+    .regex-display {
+      text-align: center;
+      font-size: 2em;
+      color: #BB63FF;
+      margin-bottom: 20px;
+      padding: 15px;
+      background: rgba(187, 99, 255, 0.1);
+      border-radius: 12px;
+      border: 2px solid rgba(187, 99, 255, 0.3);
+    }
+
+    .state-diagram {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 80px;
+      margin: 40px 0;
+      position: relative;
+    }
+
+    .state {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5em;
+      font-weight: bold;
+      position: relative;
+      transition: all 0.3s ease;
+      border: 3px solid;
+    }
+
+    .state.start {
+      background: linear-gradient(135deg, #FF8C42, #FF6B35);
+      border-color: #FF8C42;
+      color: #1a1a1a;
+    }
+
+    .state.accept {
+      background: linear-gradient(135deg, #FF8C42, #FF6B35);
+      border-color: #FF8C42;
+      color: #1a1a1a;
+      box-shadow: 0 0 0 5px rgba(255, 140, 66, 0.3),
+                  inset 0 0 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .state.fail {
+      background: linear-gradient(135deg, #5B58EB, #4A47D8);
+      border-color: #5B58EB;
+      color: white;
+    }
+
+    .state.intermediate {
+      background: linear-gradient(135deg, #56E1E9, #4ABFC7);
+      border-color: #56E1E9;
+      color: #1a1a1a;
+    }
+
+    .state.active {
+      transform: scale(1.2);
+      box-shadow: 0 0 30px currentColor;
+      animation: pulse 0.5s ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1.2); }
+      50% { transform: scale(1.3); }
+    }
+
+    .state-label {
+      position: absolute;
+      bottom: -30px;
+      font-size: 0.6em;
+      color: #bfe9ff;
+      white-space: nowrap;
+    }
+
+    .arrow {
+      font-size: 2em;
+      color: #56E1E9;
+    }
+
+    .transition-info {
+      position: absolute;
+      top: -40px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(86, 225, 233, 0.2);
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 0.8em;
+      color: #56E1E9;
+      white-space: nowrap;
+    }
+
+    .input-section {
+      text-align: center;
+      margin: 30px 0;
+    }
+
+    .input-field {
+      padding: 15px 20px;
+      font-size: 1.2em;
+      width: 300px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 2px solid rgba(86, 225, 233, 0.5);
+      border-radius: 8px;
+      color: white;
+      font-family: 'Disket Mono', monospace;
+      text-align: center;
+    }
+
+    .button {
+      padding: 12px 30px;
+      margin: 10px;
+      background: linear-gradient(90deg, #56E1E9, #BB63FF);
+      color: #07203a;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 1em;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Disket Mono', monospace;
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(187, 99, 255, 0.3);
+    }
+
+    .button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .step-display {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 20px;
+      border-radius: 12px;
+      margin: 20px 0;
+      min-height: 100px;
+    }
+
+    .step-item {
+      padding: 10px;
+      margin: 5px 0;
+      background: rgba(86, 225, 233, 0.1);
+      border-left: 3px solid #56E1E9;
+      border-radius: 4px;
+    }
+
+    .result {
+      text-align: center;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 12px;
+      font-size: 1.3em;
+      font-weight: bold;
+    }
+
+    .result.success {
+      background: rgba(86, 225, 233, 0.2);
+      color: #56E1E9;
+      border: 2px solid #56E1E9;
+    }
+
+    .result.failure {
+      background: rgba(255, 107, 107, 0.2);
+      color: #ff6b6b;
+      border: 2px solid #ff6b6b;
+    }
+
+    .explanation {
+      background: rgba(255, 255, 255, 0.03);
+      padding: 20px;
+      border-radius: 12px;
+      margin: 20px 0;
+      line-height: 1.8;
+    }
+
+    .explanation h3 {
+      color: #BB63FF;
+      margin-top: 0;
+    }
+
+    .code-block {
+      background: rgba(0, 0, 0, 0.4);
+      padding: 15px;
+      border-radius: 8px;
+      margin: 10px 0;
+      font-family: 'Consolas', monospace;
+      color: #dbeffd;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    .math {
+      color: #56E1E9;
+      font-style: italic;
+    }
+
+    .highlight {
+      background: rgba(187, 99, 255, 0.3);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .examples {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+
+    .example-card {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .example-card h4 {
+      color: #56E1E9;
+      margin-top: 0;
+    }
+
+    .loop-indicator {
+      position: absolute;
+      top: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 50px;
+      border: 3px solid #56E1E9;
+      border-bottom: none;
+      border-radius: 50% 50% 0 0;
+    }
+
+    .loop-arrow {
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #56E1E9;
+      font-size: 1.5em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav><a href="index.html">← Back</a></nav>
+    
+    <h1>Finite State Automaton (FSA) Calculator</h1>
+    <p class="subtitle">Convert Regular Expressions to State Diagrams</p>
+
+    <!-- Regex Input Section -->
+    <div class="glass-box">
+      <h3 style="color: #BB63FF; text-align: center;">Regular Expression Input</h3>
+      <div class="input-section">
+        <input type="text" id="regexInput" class="input-field" placeholder="Enter regex (e.g., a*b+, (a|b)*c)" style="width: 400px;" />
+        <br>
+        <button class="button" onclick="generateFSA()">🔄 Generate FSA</button>
+        <button class="button" onclick="showExamples()">📚 Examples</button>
+      </div>
+      <p style="text-align: center; color: #bfe9ff; margin-top: 15px;">
+        Supported patterns: a*b*, a*b+, (a|b)*c, (0|1)*0, a+|b+, a*, b+
+      </p>
+    </div>
+
+    <!-- Main Interactive Section -->
+    <div class="glass-box">
+      <div class="regex-display" id="currentRegex">Enter a regular expression above</div>
+      <p style="text-align: center; color: #bfe9ff;" id="regexDescription">Waiting for input...</p>
+
+      <div class="state-diagram" id="stateDiagram">
+        <!-- States will be dynamically generated here -->
+      </div>
+
+      <div id="transitionTable" style="margin: 20px 0;"></div>
+
+      <div class="input-section">
+        <h3 style="color: #56E1E9; margin-bottom: 10px;">Test Your FSA</h3>
+        <input type="text" id="inputString" class="input-field" placeholder="Enter string to test..." disabled />
+        <br>
+        <button class="button" onclick="startSimulation()">▶ Test String</button>
+        <button class="button" onclick="resetSimulation()">↻ Clear</button>
+      </div>
+
+      <div class="step-display" id="stepDisplay">
+        <p style="color: #bfe9ff;">Generate an FSA and enter a string to test.</p>
+      </div>
+
+      <div id="resultDisplay"></div>
+    </div>
+
+    <!-- Explanation Section -->
+    <div class="glass-box explanation">
+      <h3>What is a Deterministic Finite Automaton (DFA)?</h3>
+      <p>
+        A <span class="highlight">Deterministic Finite Automaton (DFA)</span> is a mathematical model used to recognize patterns in text. 
+        Unlike an NFA, a DFA has <strong>exactly one transition</strong> per state per input symbol, making it simple and efficient to understand!
+      </p>
+      
+      <p style="margin-top: 20px;">
+        <strong>Key Components:</strong>
+      </p>
+      <ul>
+        <li><strong style="color: #FF8C42;">Start State</strong> - Where the machine begins (orange circle). Can also be an Accept state.</li>
+        <li><strong style="color: #56E1E9;">Intermediate States</strong> - Processing states (cyan circles)</li>
+        <li><strong style="color: #FF8C42;">Accept States</strong> - Valid end states (double-ringed orange circles)</li>
+        <li><strong style="color: #5B58EB;">Fail State</strong> - Trap state where invalid strings get stuck (blue circle)</li>
+        <li><strong style="color: #56E1E9;">Deterministic Transitions</strong> - Each state has exactly one path per symbol</li>
+      </ul>
+
+      <p style="margin-top: 20px;">
+        <strong>Why DFA is Better:</strong>
+      </p>
+      <ul>
+        <li>✓ <strong>Simple to understand</strong> - Only one path to follow</li>
+        <li>✓ <strong>Minimal states</strong> - e.g., <code>a*b*</code> only needs 3 states</li>
+        <li>✓ <strong>No epsilon transitions</strong> - Every transition consumes an input symbol</li>
+        <li>✓ <strong>Easy to simulate</strong> - Just follow the arrows!</li>
+      </ul>
+
+      <p style="margin-top: 20px;">
+        <strong>How It Works:</strong>
+      </p>
+      <ol>
+        <li>Enter a regular expression (e.g., <code>a*b*</code>, <code>(0|1)*0</code>)</li>
+        <li>The calculator generates a minimal DFA</li>
+        <li>Test strings against the pattern to see if they match</li>
+        <li>Follow the step-by-step trace to see exactly how the DFA processes your input</li>
+        <li>View the transition table to see all state rules</li>
+      </ol>
+    </div>
+
+    <!-- DFA Example for a*b* -->
+    <div class="glass-box">
+      <h3 style="color: #BB63FF;">DFA Example: a*b* (The Classic Pattern)</h3>
+      
+      <p style="color: #bfe9ff; margin-bottom: 20px;">
+        This pattern accepts zero or more 'a's followed by zero or more 'b's. The minimal DFA only needs <strong>3 states</strong>!
+      </p>
+
+      <div class="code-block" style="font-size: 0.95em;">┌──────────────────────────────────────────────┐
+│  (START, ACCEPT: S₀)                         │
+│   |                                          │
+│   ├──('a')─────→ Stay at [S₀]  (Handles a*) │
+│   |                                          │
+│   └──('b')─────→ Go to [S₁]    (First 'b')  │
+│                                              │
+│  (ACCEPT: S₁)                                │
+│   |                                          │
+│   ├──('b')─────→ Stay at [S₁]  (Handles b*) │
+│   |                                          │
+│   └──('a')─────→ Go to [S₂]    (ERROR!)     │
+│                                              │
+│  (FAIL: S₂)                                  │
+│   |                                          │
+│   └──('a' or 'b')→ Stay at [S₂] (Trap)      │
+└──────────────────────────────────────────────┘
+
+<strong style="color: #56E1E9;">How it works:</strong>
+• Start at S₀ (which is also an Accept state for empty string)
+• Stay at S₀ as long as you see 'a's
+• Move to S₁ when you see the first 'b'
+• Stay at S₁ as long as you see more 'b's
+• If you see an 'a' after a 'b', go to FAIL state S₂
+
+<strong style="color: #56E1E9;">Valid strings:</strong> ε, a, aa, b, bb, ab, aabb, aaabbb
+<strong style="color: #ff6b6b;">Invalid strings:</strong> ba, aba, abab, bba</div>
+    </div>
+
+    <!-- Examples Section -->
+    <div class="glass-box">
+      <h3 style="color: #BB63FF;">Example Regular Expressions to Try</h3>
+      
+      <div class="examples">
+        <div class="example-card">
+          <h4>a*b+</h4>
+          <p style="font-size: 0.9em; color: #bfe9ff;">Zero or more a's followed by one or more b's</p>
+          <div style="margin-top: 10px;">
+            <strong style="color: #56E1E9;">Accepts:</strong> b, bb, ab, aab, abb<br>
+            <strong style="color: #ff6b6b;">Rejects:</strong> a, ba, aba
+          </div>
+        </div>
+
+        <div class="example-card">
+          <h4>(a|b)*c</h4>
+          <p style="font-size: 0.9em; color: #bfe9ff;">Any combination of a's and b's, ending with c</p>
+          <div style="margin-top: 10px;">
+            <strong style="color: #56E1E9;">Accepts:</strong> c, ac, bc, abc, bac<br>
+            <strong style="color: #ff6b6b;">Rejects:</strong> a, b, ab, ca
+          </div>
+        </div>
+
+        <div class="example-card">
+          <h4>(0|1)*0</h4>
+          <p style="font-size: 0.9em; color: #bfe9ff;">Binary strings ending in 0</p>
+          <div style="margin-top: 10px;">
+            <strong style="color: #56E1E9;">Accepts:</strong> 0, 10, 00, 110, 1010<br>
+            <strong style="color: #ff6b6b;">Rejects:</strong> 1, 01, 11, 101
+          </div>
+        </div>
+
+        <div class="example-card">
+          <h4>a+|b+</h4>
+          <p style="font-size: 0.9em; color: #bfe9ff;">One or more a's OR one or more b's</p>
+          <div style="margin-top: 10px;">
+            <strong style="color: #56E1E9;">Accepts:</strong> a, aa, b, bbb<br>
+            <strong style="color: #ff6b6b;">Rejects:</strong> ab, ba, aab, abb
+          </div>
+        </div>
+
+        <div class="example-card">
+          <h4>a*b*</h4>
+          <p style="font-size: 0.9em; color: #bfe9ff;">Zero or more a's followed by zero or more b's</p>
+          <div style="margin-top: 10px;">
+            <strong style="color: #56E1E9;">Accepts:</strong> ε (empty), a, b, ab, aab, abb<br>
+            <strong style="color: #ff6b6b;">Rejects:</strong> ba, aba, bab
+          </div>
+        </div>
+
+        <div class="example-card">
+          <h4>a*</h4>
+          <p style="font-size: 0.9em; color: #bfe9ff;">Zero or more a's (only a's allowed)</p>
+          <div style="margin-top: 10px;">
+            <strong style="color: #56E1E9;">Accepts:</strong> ε (empty), a, aa, aaa<br>
+            <strong style="color: #ff6b6b;">Rejects:</strong> b, ab, ba
+          </div>
+        </div>
+
+        <div class="example-card">
+          <h4>b+</h4>
+          <p style="font-size: 0.9em; color: #bfe9ff;">One or more b's (only b's allowed)</p>
+          <div style="margin-top: 10px;">
+            <strong style="color: #56E1E9;">Accepts:</strong> b, bb, bbb<br>
+            <strong style="color: #ff6b6b;">Rejects:</strong> ε, a, ab, ba
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentState = 'S0';
+    let inputString = '';
+    let currentIndex = 0;
+    let steps = [];
+    let isRunning = false;
+    let fsaStates = [];
+    let fsaTransitions = [];
+    let startState = null;
+    let acceptStates = [];
+
+    // DFA State class
+    class DFAState {
+      constructor(id, isAccept = false, isStart = false) {
+        this.id = id;
+        this.isAccept = isAccept;
+        this.isStart = isStart;
+        this.transitions = {}; // Map: symbol -> single state id
+      }
+      
+      addTransition(symbol, stateId) {
+        this.transitions[symbol] = stateId;
+      }
+    }
+
+    let stateCounter = 0;
+    function newDFAState(isAccept = false, isStart = false) {
+      return new DFAState(stateCounter++, isAccept, isStart);
+    }
+
+    // Build DFA for specific patterns
+    function buildDFA(regex) {
+      stateCounter = 0;
+      const states = [];
+      
+      // Normalize regex for parsing
+      regex = regex.trim();
+      
+      // Pattern: a*b* (zero or more a's followed by zero or more b's)
+      if (regex === 'a*b*') {
+        const S0 = newDFAState(true, true); // Start and Accept
+        const S1 = newDFAState(true);       // Accept state for b's
+        const FAIL = newDFAState(false);    // Fail state
+        
+        // S0 transitions
+        S0.addTransition('a', S0.id);    // Stay on 'a'
+        S0.addTransition('b', S1.id);    // Move to S1 on 'b'
+        
+        // S1 transitions
+        S1.addTransition('b', S1.id);    // Stay on 'b'
+        S1.addTransition('a', FAIL.id);  // Fail on 'a' after 'b'
+        
+        // FAIL transitions
+        FAIL.addTransition('a', FAIL.id);
+        FAIL.addTransition('b', FAIL.id);
+        
+        states.push(S0, S1, FAIL);
+        return { states, start: S0.id, alphabet: ['a', 'b'] };
+      }
+      
+      // Pattern: a*b+ (zero or more a's followed by one or more b's)
+      if (regex === 'a*b+') {
+        const S0 = newDFAState(false, true); // Start (NOT accept - need at least one b)
+        const S1 = newDFAState(true);         // Accept state for b's
+        const FAIL = newDFAState(false);      // Fail state
+        
+        // S0 transitions
+        S0.addTransition('a', S0.id);    // Stay on 'a'
+        S0.addTransition('b', S1.id);    // Move to S1 on 'b'
+        
+        // S1 transitions
+        S1.addTransition('b', S1.id);    // Stay on 'b'
+        S1.addTransition('a', FAIL.id);  // Fail on 'a' after 'b'
+        
+        // FAIL transitions
+        FAIL.addTransition('a', FAIL.id);
+        FAIL.addTransition('b', FAIL.id);
+        
+        states.push(S0, S1, FAIL);
+        return { states, start: S0.id, alphabet: ['a', 'b'] };
+      }
+      
+      // Pattern: (a|b)*c (any a's and b's ending with c)
+      if (regex === '(a|b)*c') {
+        const S0 = newDFAState(false, true); // Start
+        const S1 = newDFAState(true);        // Accept after 'c'
+        const FAIL = newDFAState(false);     // Fail state
+        
+        // S0 transitions
+        S0.addTransition('a', S0.id);    // Stay on 'a'
+        S0.addTransition('b', S0.id);    // Stay on 'b'
+        S0.addTransition('c', S1.id);    // Accept on 'c'
+        
+        // S1 transitions (after c, any char fails)
+        S1.addTransition('a', FAIL.id);
+        S1.addTransition('b', FAIL.id);
+        S1.addTransition('c', FAIL.id);
+        
+        // FAIL transitions
+        FAIL.addTransition('a', FAIL.id);
+        FAIL.addTransition('b', FAIL.id);
+        FAIL.addTransition('c', FAIL.id);
+        
+        states.push(S0, S1, FAIL);
+        return { states, start: S0.id, alphabet: ['a', 'b', 'c'] };
+      }
+      
+      // Pattern: (0|1)*0 (binary strings ending in 0)
+      if (regex === '(0|1)*0') {
+        const S0 = newDFAState(false, true); // Start
+        const S1 = newDFAState(true);        // Accept (just saw 0)
+        
+        // S0 transitions
+        S0.addTransition('0', S1.id);    // Saw 0, accept
+        S0.addTransition('1', S0.id);    // Saw 1, stay
+        
+        // S1 transitions
+        S1.addTransition('0', S1.id);    // Saw 0, stay accepting
+        S1.addTransition('1', S0.id);    // Saw 1, back to S0
+        
+        states.push(S0, S1);
+        return { states, start: S0.id, alphabet: ['0', '1'] };
+      }
+      
+      // Pattern: a+|b+ (one or more a's OR one or more b's, but not mixed)
+      if (regex === 'a+|b+') {
+        const S0 = newDFAState(false, true); // Start
+        const S1 = newDFAState(true);        // Accept (in a's)
+        const S2 = newDFAState(true);        // Accept (in b's)
+        const FAIL = newDFAState(false);     // Fail (mixed)
+        
+        // S0 transitions
+        S0.addTransition('a', S1.id);    // First 'a'
+        S0.addTransition('b', S2.id);    // First 'b'
+        
+        // S1 transitions (in a's)
+        S1.addTransition('a', S1.id);    // More a's
+        S1.addTransition('b', FAIL.id);  // Mixed - fail
+        
+        // S2 transitions (in b's)
+        S2.addTransition('b', S2.id);    // More b's
+        S2.addTransition('a', FAIL.id);  // Mixed - fail
+        
+        // FAIL transitions
+        FAIL.addTransition('a', FAIL.id);
+        FAIL.addTransition('b', FAIL.id);
+        
+        states.push(S0, S1, S2, FAIL);
+        return { states, start: S0.id, alphabet: ['a', 'b'] };
+      }
+      
+      // Pattern: a* (zero or more a's)
+      if (regex === 'a*') {
+        const S0 = newDFAState(true, true);  // Start and Accept
+        const FAIL = newDFAState(false);     // Fail on non-'a'
+        
+        S0.addTransition('a', S0.id);        // Stay on 'a'
+        S0.addTransition('b', FAIL.id);      // Fail on other chars
+        
+        FAIL.addTransition('a', FAIL.id);
+        FAIL.addTransition('b', FAIL.id);
+        
+        states.push(S0, FAIL);
+        return { states, start: S0.id, alphabet: ['a', 'b'] };
+      }
+      
+      // Pattern: b+ (one or more b's)
+      if (regex === 'b+') {
+        const S0 = newDFAState(false, true); // Start
+        const S1 = newDFAState(true);        // Accept
+        const FAIL = newDFAState(false);     // Fail
+        
+        S0.addTransition('b', S1.id);
+        S0.addTransition('a', FAIL.id);
+        
+        S1.addTransition('b', S1.id);
+        S1.addTransition('a', FAIL.id);
+        
+        FAIL.addTransition('a', FAIL.id);
+        FAIL.addTransition('b', FAIL.id);
+        
+        states.push(S0, S1, FAIL);
+        return { states, start: S0.id, alphabet: ['a', 'b'] };
+      }
+      
+      throw new Error(`Pattern "${regex}" not yet supported. Try: a*b*, a*b+, (a|b)*c, (0|1)*0, a+|b+, a*, b+`);
+    }
+
+    // Generate FSA from regex
+    function generateFSA() {
+      const regexInput = document.getElementById('regexInput').value.trim();
+      
+      if (!regexInput) {
+        alert('Please enter a regular expression!');
+        return;
+      }
+      
+      try {
+        // Build DFA
+        const dfa = buildDFA(regexInput);
+        
+        // Store states and transitions
+        fsaStates = dfa.states;
+        fsaTransitions = [];
+        
+        // Collect all transitions
+        dfa.states.forEach(state => {
+          for (const symbol in state.transitions) {
+            fsaTransitions.push({
+              from: state.id,
+              to: state.transitions[symbol],
+              symbol: symbol
+            });
+          }
+        });
+        
+        startState = dfa.start;
+        acceptStates = dfa.states.filter(s => s.isAccept).map(s => s.id);
+        
+        // Update UI
+        document.getElementById('currentRegex').textContent = regexInput;
+        document.getElementById('regexDescription').textContent = `Generated DFA with ${fsaStates.length} states (deterministic)`;
+        
+        renderStateDiagram();
+        renderTransitionTable();
+        
+        // Enable test input
+        document.getElementById('inputString').disabled = false;
+        
+      } catch (error) {
+        alert('Error: ' + error.message);
+        console.error(error);
+      }
+    }
+
+    // Render state diagram
+    function renderStateDiagram() {
+      const diagram = document.getElementById('stateDiagram');
+      diagram.innerHTML = '';
+      diagram.style.display = 'flex';
+      diagram.style.flexWrap = 'wrap';
+      diagram.style.justifyContent = 'center';
+      diagram.style.gap = '40px';
+      diagram.style.padding = '30px';
+      diagram.style.position = 'relative';
+      
+      // Create state elements
+      fsaStates.forEach(state => {
+        const stateDiv = document.createElement('div');
+        stateDiv.className = 'state';
+        stateDiv.id = `state-${state.id}`;
+        
+        // Determine state type
+        const isFail = !state.isAccept && !state.isStart && 
+                       Object.values(state.transitions).every(t => t === state.id);
+        
+        if (state.isStart && state.isAccept) {
+          stateDiv.classList.add('start');
+          stateDiv.classList.add('accept');
+        } else if (state.isStart) {
+          stateDiv.classList.add('start');
+        } else if (state.isAccept) {
+          stateDiv.classList.add('accept');
+        } else if (isFail) {
+          stateDiv.classList.add('fail');
+        } else {
+          stateDiv.classList.add('intermediate');
+        }
+        
+        // Label based on type
+        let label = '';
+        if (state.isStart && state.isAccept) {
+          label = 'Start, Accept';
+        } else if (state.isStart) {
+          label = 'Start';
+        } else if (state.isAccept) {
+          label = 'Accept';
+        } else if (isFail) {
+          label = 'Fail';
+        } else {
+          label = 'State';
+        }
+        
+        stateDiv.innerHTML = `
+          S<sub>${state.id}</sub>
+          <div class="state-label">${label}</div>
+        `;
+        
+        diagram.appendChild(stateDiv);
+      });
+    }
+
+    // Render transition table
+    function renderTransitionTable() {
+      const tableDiv = document.getElementById('transitionTable');
+      
+      if (fsaTransitions.length === 0) {
+        tableDiv.innerHTML = '';
+        return;
+      }
+      
+      let html = '<h3 style="color: #BB63FF;">State Transition Table (DFA)</h3>';
+      html += '<div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px;">';
+      html += '<table style="width: 100%; border-collapse: collapse;">';
+      html += '<tr style="background: rgba(86,225,233,0.2);"><th style="padding: 10px; border: 1px solid rgba(255,255,255,0.1);">From State</th><th style="padding: 10px; border: 1px solid rgba(255,255,255,0.1);">Input Symbol</th><th style="padding: 10px; border: 1px solid rgba(255,255,255,0.1);">To State</th><th style="padding: 10px; border: 1px solid rgba(255,255,255,0.1);">Action</th></tr>';
+      
+      fsaTransitions.forEach(trans => {
+        const fromState = fsaStates.find(s => s.id === trans.from);
+        const toState = fsaStates.find(s => s.id === trans.to);
+        
+        let action = '';
+        if (trans.from === trans.to) {
+          action = '↻ Loop';
+        } else if (toState && !toState.isAccept && Object.values(toState.transitions).every(t => t === toState.id)) {
+          action = '⚠️ Trap (Fail)';
+        } else if (toState && toState.isAccept) {
+          action = '✓ Accept';
+        } else {
+          action = '→ Move';
+        }
+        
+        html += `<tr>
+          <td style="padding: 10px; border: 1px solid rgba(255,255,255,0.1); text-align: center;">S<sub>${trans.from}</sub></td>
+          <td style="padding: 10px; border: 1px solid rgba(255,255,255,0.1); text-align: center; color: #56E1E9; font-weight: bold; font-size: 1.1em;">'${trans.symbol}'</td>
+          <td style="padding: 10px; border: 1px solid rgba(255,255,255,0.1); text-align: center;">S<sub>${trans.to}</sub></td>
+          <td style="padding: 10px; border: 1px solid rgba(255,255,255,0.1); text-align: center;">${action}</td>
+        </tr>`;
+      });
+      
+      html += '</table></div>';
+      tableDiv.innerHTML = html;
+    }
+
+    // Show example regexes
+    function showExamples() {
+      const examples = [
+        'a*b*',
+        'a*b+',
+        '(a|b)*c',
+        '(0|1)*0',
+        'a+|b+',
+        'a*',
+        'b+'
+      ];
+      
+      const example = examples[Math.floor(Math.random() * examples.length)];
+      document.getElementById('regexInput').value = example;
+      generateFSA();
+    }
+
+    // Simulate DFA (deterministic - exactly one path)
+    function simulateDFA(input) {
+      let currentStateId = startState;
+      const trace = [`🎬 Start at state [S${currentStateId}]`];
+      
+      // Handle empty string
+      if (input.length === 0) {
+        const isAccepted = acceptStates.includes(currentStateId);
+        trace.push(`📝 Empty string (ε)`);
+        trace.push(isAccepted ? '✅ ACCEPTED (empty string allowed)' : '❌ REJECTED (empty string not allowed)');
+        return { accepted: isAccepted, trace, finalState: currentStateId };
+      }
+      
+      // Process each character
+      for (let i = 0; i < input.length; i++) {
+        const char = input[i];
+        const currentState = fsaStates.find(s => s.id === currentStateId);
+        
+        if (!currentState) {
+          trace.push(`❌ Error: Invalid state S${currentStateId}`);
+          return { accepted: false, trace, finalState: currentStateId };
+        }
+        
+        // Get next state
+        const nextStateId = currentState.transitions[char];
+        
+        if (nextStateId === undefined) {
+          trace.push(`📖 Read '${char}' at [S${currentStateId}]: No transition defined → REJECTED`);
+          return { accepted: false, trace, finalState: currentStateId };
+        }
+        
+        // Describe transition
+        const nextState = fsaStates.find(s => s.id === nextStateId);
+        const stayOrGo = nextStateId === currentStateId ? 'Stay at' : 'Go to';
+        
+        let description = `📖 Read '${char}' at [S${currentStateId}]: ${stayOrGo} [S${nextStateId}]`;
+        
+        // Add context
+        if (nextState) {
+          if (nextStateId === currentStateId) {
+            description += ' (loop)';
+          } else if (!nextState.isAccept && Object.values(nextState.transitions).every(t => t === nextStateId)) {
+            description += ' (FAIL state - trap)';
+          }
+        }
+        
+        trace.push(description);
+        currentStateId = nextStateId;
+      }
+      
+      // Check final state
+      const isAccepted = acceptStates.includes(currentStateId);
+      const finalState = fsaStates.find(s => s.id === currentStateId);
+      
+      trace.push(`🏁 End at state [S${currentStateId}] ${finalState && finalState.isAccept ? '(Accept)' : '(Not Accept)'}`);
+      trace.push(isAccepted ? '✅ ACCEPTED ✓' : '❌ REJECTED ✗');
+      
+      return { accepted: isAccepted, trace, finalState: currentStateId };
+    }
+
+    function startSimulation() {
+      if (!fsaStates || fsaStates.length === 0) {
+        alert('Please generate a DFA first!');
+        return;
+      }
+      
+      inputString = document.getElementById('inputString').value;
+
+      const result = simulateDFA(inputString);
+      
+      const resultDiv = document.getElementById('resultDisplay');
+      const stepDisplay = document.getElementById('stepDisplay');
+      
+      // Display trace
+      let stepsHTML = '';
+      result.trace.forEach(step => {
+        stepsHTML += `<div class="step-item">${step}</div>`;
+      });
+      stepDisplay.innerHTML = stepsHTML;
+      
+      // Highlight final state
+      highlightState(result.finalState);
+      
+      // Display result
+      const displayString = inputString === '' ? 'ε (empty string)' : `"${inputString}"`;
+      
+      if (result.accepted) {
+        resultDiv.innerHTML = `
+          <div class="result success">
+            ✓ ACCEPTED! The string ${displayString} matches the pattern
+            <br><br>
+            <small>The DFA ended in Accept State [S${result.finalState}]</small>
+          </div>
+        `;
+      } else {
+        resultDiv.innerHTML = `
+          <div class="result failure">
+            ✗ REJECTED. The string ${displayString} does NOT match the pattern
+            <br><br>
+            <small>The DFA ended in State [S${result.finalState}] (not an Accept State)</small>
+          </div>
+        `;
+      }
+    }
+
+    function stepSimulation() {
+      // Not implemented for dynamic NFA - use startSimulation instead
+      startSimulation();
+    }
+
+    function resetSimulation() {
+      document.getElementById('stepDisplay').innerHTML = '<p style="color: #bfe9ff;">Generate an FSA and enter a string to test.</p>';
+      document.getElementById('resultDisplay').innerHTML = '';
+      document.getElementById('inputString').value = '';
+    }
+
+    function highlightState(stateId) {
+      // Remove all highlights
+      document.querySelectorAll('.state').forEach(state => {
+        state.classList.remove('active');
+      });
+      
+      // Add highlight to current state
+      const stateElement = document.getElementById(`state-${stateId}`);
+      if (stateElement) {
+        stateElement.classList.add('active');
+      }
+    }
+
+    function updateStepDisplay() {
+      const displayDiv = document.getElementById('stepDisplay');
+      displayDiv.scrollTop = displayDiv.scrollHeight;
+    }
+
+    // Add Enter key support for regex input
+    document.getElementById('regexInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        generateFSA();
+      }
+    });
+
+    // Add Enter key support for test input
+    document.addEventListener('DOMContentLoaded', function() {
+      const inputField = document.getElementById('inputString');
+      if (inputField) {
+        inputField.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            startSimulation();
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>
