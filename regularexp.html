@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Regular Expressions - AutoVerse</title>
+    <title>Regular Expression Calculator - AutoVerse</title>
     <link href="https://fonts.googleapis.com/css2?family=Disket+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -19,7 +19,7 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 40px auto;
             padding: 20px;
         }
@@ -29,7 +29,14 @@
             font-size: 2.5em;
             color: white;
             text-shadow: 0 0 10px rgba(86,225,233,0.8);
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #56E1E9;
             margin-bottom: 30px;
+            font-size: 1.1em;
         }
 
         .regex-card {
@@ -50,13 +57,20 @@
 
         .regex-input {
             width: 100%;
-            padding: 12px;
+            padding: 15px;
             margin-bottom: 10px;
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(86, 225, 233, 0.3);
             border-radius: 8px;
             color: #fff;
-            font-family: 'Disket Mono', monospace;
+            font-family: 'Consolas', monospace;
+            font-size: 1.2em;
+        }
+
+        .regex-input:focus {
+            outline: none;
+            border-color: #56E1E9;
+            box-shadow: 0 0 15px rgba(86, 225, 233, 0.3);
         }
 
         .regex-button {
@@ -77,34 +91,41 @@
             box-shadow: 0 6px 20px rgba(187, 99, 255, 0.3);
         }
 
-        .result-box {
-            margin-top: 15px;
-            padding: 15px;
-            background: rgba(86, 225, 233, 0.1);
-            border-radius: 8px;
-            font-family: 'Consolas', monospace;
-        }
-
-        .pattern-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin: 15px 0;
-        }
-
-        .pattern-button {
-            background: rgba(255, 255, 255, 0.1);
+        .symbol-button {
+            background: rgba(86, 225, 233, 0.2);
             color: #56E1E9;
-            border: none;
-            padding: 8px 16px;
+            border: 1px solid rgba(86, 225, 233, 0.5);
+            padding: 10px 18px;
             border-radius: 6px;
             cursor: pointer;
-            font-family: 'Disket Mono', monospace;
+            font-family: 'Consolas', monospace;
             transition: all 0.2s ease;
+            font-size: 1.1em;
+            margin: 3px;
         }
 
-        .pattern-button:hover {
-            background: rgba(255, 255, 255, 0.2);
+        .symbol-button:hover {
+            background: rgba(86, 225, 233, 0.4);
+            transform: scale(1.05);
+        }
+
+        .result-box {
+            margin-top: 15px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(86, 225, 233, 0.3);
+            border-radius: 8px;
+            font-family: 'Consolas', monospace;
+            min-height: 60px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 8px;
+            margin: 15px 0;
         }
 
         nav {
@@ -129,208 +150,657 @@
             box-shadow: 0 6px 20px rgba(187, 99, 255, 0.3);
         }
 
-        .example-box {
-            background: rgba(0, 0, 0, 0.2);
+        .info-box {
+            background: rgba(187, 99, 255, 0.1);
+            border-left: 4px solid #BB63FF;
             border-radius: 8px;
             padding: 15px;
             margin: 10px 0;
         }
 
-        .help-text {
-            color: #bfe9ff;
-            font-size: 0.9em;
-            margin: 10px 0;
+        .language-display {
+            color: #56E1E9;
+            font-size: 1.1em;
+            line-height: 1.8;
+        }
+
+        .string-item {
+            display: inline-block;
+            background: rgba(86, 225, 233, 0.2);
+            padding: 5px 10px;
+            margin: 3px;
+            border-radius: 5px;
+            border: 1px solid rgba(86, 225, 233, 0.4);
+        }
+
+        .epsilon {
+            color: #BB63FF;
+            font-style: italic;
+        }
+
+        .error {
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+
+        .success {
+            color: #56E1E9;
+        }
+
+        h3 {
+            color: #BB63FF;
+            margin-top: 15px;
+        }
+
+        .operator-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #56E1E9;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <nav><a href="index.html">← Back</a></nav>
-        <h1>Regular Expressions Explorer</h1>
+        <h1>Regular Expression Calculator</h1>
+        <div class="subtitle">Formal Automata Theory - Compute Regular Languages</div>
 
-        <!-- Pattern Tester -->
+        <!-- Main Calculator -->
         <div class="regex-card">
-            <h2>Pattern Tester</h2>
-            <div class="input-group">
-                <input type="text" id="regexPattern" class="regex-input" placeholder="Enter regex pattern (e.g., ^[a-z]+$)">
-                <input type="text" id="testString" class="regex-input" placeholder="Enter test string">
-                <button onclick="testPattern()" class="regex-button">Test Match</button>
+            <h2>Regular Expression Calculator</h2>
+            <p style="color: #bfe9ff; margin-bottom: 15px;">
+                Enter a regular expression using: <code>∅</code> (empty set), <code>ε</code> (epsilon/empty string), 
+                symbols (a-z, 0-9), <code>|</code> (OR), concatenation (ab), <code>*</code> (Kleene closure), 
+                <code>+</code> (positive closure), and parentheses for grouping.
+            </p>
+            
+            <div class="operator-grid">
+                <button onclick="insertSymbol('ε')" class="symbol-button">ε (epsilon)</button>
+                <button onclick="insertSymbol('∅')" class="symbol-button">∅ (empty set)</button>
+                <button onclick="insertSymbol('|')" class="symbol-button">| (OR)</button>
+                <button onclick="insertSymbol('*')" class="symbol-button">* (Kleene)</button>
+                <button onclick="insertSymbol('+')" class="symbol-button">+ (Positive)</button>
+                <button onclick="insertSymbol('(')" class="symbol-button">( )</button>
+                <button onclick="insertSymbol('a')" class="symbol-button">a</button>
+                <button onclick="insertSymbol('b')" class="symbol-button">b</button>
             </div>
-            <div class="pattern-buttons">
-                <button onclick="insertPattern('^[a-z]+$')" class="pattern-button">Lowercase letters</button>
-                <button onclick="insertPattern('^[A-Z]+$')" class="pattern-button">Uppercase letters</button>
-                <button onclick="insertPattern('^[0-9]+$')" class="pattern-button">Numbers only</button>
-                <button onclick="insertPattern('^[a-zA-Z0-9]+$')" class="pattern-button">Alphanumeric</button>
-                <button onclick="insertPattern('^.{5}$')" class="pattern-button">Exactly 5 chars</button>
-                <button onclick="insertPattern('^(a|b)*$')" class="pattern-button">Only a's and b's</button>
+
+            <input type="text" id="regexInput" class="regex-input" placeholder="Enter regular expression (e.g., (a+b)*ab, a*b*, ε, ∅)">
+            
+            <div style="margin: 15px 0;">
+                <button onclick="computeLanguage()" class="regex-button">Compute Language</button>
+                <button onclick="clearInput()" class="regex-button" style="background: rgba(255, 107, 107, 0.3);">Clear</button>
             </div>
-            <div id="patternResult" class="result-box">Results will appear here...</div>
+
+            <div id="calculatorResult" class="result-box">
+                <div style="color: #bfe9ff;">Results will appear here...</div>
+            </div>
         </div>
 
-        <!-- String Generator -->
+        <!-- Examples and Reference -->
         <div class="regex-card">
-            <h2>String Generator</h2>
-            <div class="input-group">
-                <input type="text" id="genPattern" class="regex-input" placeholder="Enter pattern to generate strings (e.g., (a|b)*abb)">
-                <button onclick="generateStrings()" class="regex-button">Generate Strings</button>
+            <h2>Quick Reference</h2>
+            <div class="info-box">
+                <h3>Basic Building Blocks:</h3>
+                <ul>
+                    <li><code>∅</code> - Empty set (language with no strings)</li>
+                    <li><code>ε</code> - Empty string (language containing only the empty string)</li>
+                    <li><code>a</code> - Single symbol (language containing only "a")</li>
+                </ul>
             </div>
-            <div class="pattern-buttons">
-                <button onclick="insertGenPattern('(a|b)*')" class="pattern-button">a's and b's</button>
-                <button onclick="insertGenPattern('(0|1)*')" class="pattern-button">Binary</button>
-                <button onclick="insertGenPattern('a*b+')" class="pattern-button">a's followed by b's</button>
-            </div>
-            <div id="genResult" class="result-box">Generated strings will appear here...</div>
-        </div>
 
-        <!-- Language Properties -->
-        <div class="regex-card">
-            <h2>Language Properties</h2>
-            <div class="input-group">
-                <input type="text" id="langPattern" class="regex-input" placeholder="Enter pattern to analyze (e.g., (ab)*">
-                <button onclick="analyzePattern()" class="regex-button">Analyze</button>
+            <div class="info-box">
+                <h3>Operators:</h3>
+                <ul>
+                    <li><code>R1 | R2</code> - Union/Alternation (strings from R1 OR R2)</li>
+                    <li><code>R1R2</code> - Concatenation (strings from R1 followed by strings from R2)</li>
+                    <li><code>R*</code> - Kleene Closure (zero or more repetitions, includes ε)</li>
+                    <li><code>R+</code> - Positive Closure (one or more repetitions, no ε)</li>
+                    <li><code>(R)</code> - Grouping (for nested operations)</li>
+                </ul>
             </div>
-            <div id="langResult" class="result-box">Analysis will appear here...</div>
-        </div>
 
-        <!-- Common Patterns -->
-        <div class="regex-card">
-            <h2>Common Regex Patterns</h2>
-            <div class="example-box">
-                <h3>Basic Patterns:</h3>
-                <pre>
-^[a-z]+$     - Only lowercase letters
-^[A-Z]+$     - Only uppercase letters
-^[0-9]+$     - Only numbers
-^.{n}$       - Exactly n characters
-[aeiou]      - Any vowel
-[^aeiou]     - Any non-vowel
-                </pre>
-            </div>
-            <div class="example-box">
-                <h3>Automata Patterns:</h3>
-                <pre>
-(a|b)*       - Any string of a's and b's
-(a|b)*abb    - Any string ending with 'abb'
-a*b*         - All a's followed by all b's
-(aa|bb)*     - Pairs of a's or pairs of b's
-                </pre>
+            <div class="info-box">
+                <h3>Example Regular Expressions:</h3>
+                <div class="button-grid">
+                    <button onclick="loadExample('a*')" class="symbol-button">a* - {ε, a, aa, aaa, ...}</button>
+                    <button onclick="loadExample('a+')" class="symbol-button">a+ - {a, aa, aaa, ...}</button>
+                    <button onclick="loadExample('(a|b)*')" class="symbol-button">(a|b)* - All strings of a's OR b's</button>
+                    <button onclick="loadExample('(a|b)+')" class="symbol-button">(a|b)+ - a,aa,aaa OR b,bb,bbb</button>
+                    <button onclick="loadExample('a*b*')" class="symbol-button">a*b* - a's followed by b's</button>
+                    <button onclick="loadExample('(a|b)*abb')" class="symbol-button">(a|b)*abb - Ending in "abb"</button>
+                    <button onclick="loadExample('(aa)*')" class="symbol-button">(aa)* - Even length a's</button>
+                    <button onclick="loadExample('a|ε')" class="symbol-button">a|ε - a OR ε</button>
+                    <button onclick="loadExample('∅*')" class="symbol-button">∅* - {ε}</button>
+                    <button onclick="loadExample('(a|b)(c|d)')" class="symbol-button">(a|b)(c|d) - ac,ad OR bc,bd</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Test if a string matches a pattern
-        function testPattern() {
-            const pattern = document.getElementById('regexPattern').value;
-            const testStr = document.getElementById('testString').value;
-            const resultDiv = document.getElementById('patternResult');
+        // ========== REGULAR EXPRESSION PARSER AND EVALUATOR ==========
+        
+        // Token types for lexical analysis
+        const TokenType = {
+            SYMBOL: 'SYMBOL',
+            UNION: 'UNION',
+            STAR: 'STAR',
+            PLUS: 'PLUS',
+            LPAREN: 'LPAREN',
+            RPAREN: 'RPAREN',
+            EPSILON: 'EPSILON',
+            EMPTY: 'EMPTY',
+            EOF: 'EOF'
+        };
 
-            try {
-                const regex = new RegExp(pattern);
-                const isMatch = regex.test(testStr);
-                const matches = testStr.match(regex) || [];
+        // Lexer: Convert string to tokens
+        function tokenize(input) {
+            const tokens = [];
+            let i = 0;
+            
+            while (i < input.length) {
+                const char = input[i];
+                
+                if (char === ' ') {
+                    i++;
+                    continue;
+                }
+                
+                if (char === 'ε' || (input.substr(i, 7) === 'epsilon')) {
+                    tokens.push({ type: TokenType.EPSILON, value: 'ε' });
+                    i += char === 'ε' ? 1 : 7;
+                } else if (char === '∅' || (input.substr(i, 5) === 'empty')) {
+                    tokens.push({ type: TokenType.EMPTY, value: '∅' });
+                    i += char === '∅' ? 1 : 5;
+                } else if (input.substr(i, 2).toUpperCase() === 'OR') {
+                    tokens.push({ type: TokenType.UNION, value: 'OR' });
+                    i += 2;
+                } else if (char === '|') {
+                    tokens.push({ type: TokenType.UNION, value: char });
+                    i++;
+                } else if (char === '+') {
+                    // + is ALWAYS positive closure when it comes after a symbol, ), or *
+                    // It's only UNION when explicitly used between expressions at the top level
+                    // Since we want a+a* to be (a+)(a*), we treat + as PLUS after any closeable element
+                    if (i > 0 && tokens.length > 0 && 
+                        (tokens[tokens.length - 1].type === TokenType.RPAREN || 
+                         tokens[tokens.length - 1].type === TokenType.SYMBOL ||
+                         tokens[tokens.length - 1].type === TokenType.EPSILON ||
+                         tokens[tokens.length - 1].type === TokenType.STAR ||
+                         tokens[tokens.length - 1].type === TokenType.PLUS)) {
+                        // This is positive closure
+                        tokens.push({ type: TokenType.PLUS, value: char });
+                        i++;
+                    } else {
+                        // This is union (rare case, or error)
+                        tokens.push({ type: TokenType.UNION, value: char });
+                        i++;
+                    }
+                } else if (char === '*') {
+                    tokens.push({ type: TokenType.STAR, value: char });
+                    i++;
+                } else if (char === '(') {
+                    tokens.push({ type: TokenType.LPAREN, value: char });
+                    i++;
+                } else if (char === ')') {
+                    tokens.push({ type: TokenType.RPAREN, value: char });
+                    i++;
+                } else if (/[a-z0-9]/i.test(char)) {
+                    tokens.push({ type: TokenType.SYMBOL, value: char });
+                    i++;
+                } else {
+                    throw new Error(`Invalid character: ${char}`);
+                }
+            }
+            
+            tokens.push({ type: TokenType.EOF });
+            return tokens;
+        }
 
-                resultDiv.innerHTML = `
-                    <span style="color: ${isMatch ? '#56E1E9' : '#ff6b6b'}">
-                        ${isMatch ? '✓ Match found!' : '✗ No match'}
-                    </span><br>
-                    ${isMatch ? `Matched: ${matches.join(', ')}` : ''}
-                `;
-            } catch (error) {
-                resultDiv.innerHTML = `Error: ${error.message}`;
-                resultDiv.style.color = '#ff6b6b';
+        // Abstract Syntax Tree node types
+        class ASTNode {
+            constructor(type, value = null, left = null, right = null) {
+                this.type = type;
+                this.value = value;
+                this.left = left;
+                this.right = right;
             }
         }
 
-        // Insert pattern into input
-        function insertPattern(pattern) {
-            document.getElementById('regexPattern').value = pattern;
-        }
+        // Recursive descent parser
+        class RegexParser {
+            constructor(tokens) {
+                this.tokens = tokens;
+                this.pos = 0;
+            }
 
-        // Insert pattern into generator input
-        function insertGenPattern(pattern) {
-            document.getElementById('genPattern').value = pattern;
-        }
+            current() {
+                return this.tokens[this.pos];
+            }
 
-        // Generate strings that match the pattern
-        function generateStrings() {
-            const pattern = document.getElementById('genPattern').value;
-            const resultDiv = document.getElementById('genResult');
-            
-            try {
-                // Simple string generation for basic patterns
-                const examples = generateExampleStrings(pattern);
-                resultDiv.innerHTML = `
-                    <div>Examples matching pattern:</div>
-                    <div style="color: #56E1E9">${examples.join(', ')}</div>
-                `;
-            } catch (error) {
-                resultDiv.innerHTML = `Error: ${error.message}`;
-                resultDiv.style.color = '#ff6b6b';
+            consume() {
+                return this.tokens[this.pos++];
+            }
+
+            // Grammar: expr -> term ('+' term)*
+            parseExpression() {
+                let left = this.parseTerm();
+                
+                while (this.current().type === TokenType.UNION) {
+                    this.consume();
+                    let right = this.parseTerm();
+                    left = new ASTNode('UNION', null, left, right);
+                }
+                
+                return left;
+            }
+
+            // Grammar: term -> factor factor*
+            parseTerm() {
+                let left = this.parseFactor();
+                
+                while (this.current().type === TokenType.SYMBOL ||
+                       this.current().type === TokenType.EPSILON ||
+                       this.current().type === TokenType.EMPTY ||
+                       this.current().type === TokenType.LPAREN) {
+                    let right = this.parseFactor();
+                    left = new ASTNode('CONCAT', null, left, right);
+                }
+                
+                return left;
+            }
+
+            // Grammar: factor -> base ('*' | '+')?
+            parseFactor() {
+                let base = this.parseBase();
+                
+                if (this.current().type === TokenType.STAR) {
+                    this.consume();
+                    return new ASTNode('STAR', null, base);
+                } else if (this.current().type === TokenType.PLUS) {
+                    this.consume();
+                    return new ASTNode('PLUS', null, base);
+                }
+                
+                return base;
+            }
+
+            // Grammar: base -> symbol | epsilon | empty | '(' expr ')'
+            parseBase() {
+                const token = this.current();
+                
+                if (token.type === TokenType.SYMBOL) {
+                    this.consume();
+                    return new ASTNode('SYMBOL', token.value);
+                } else if (token.type === TokenType.EPSILON) {
+                    this.consume();
+                    return new ASTNode('EPSILON');
+                } else if (token.type === TokenType.EMPTY) {
+                    this.consume();
+                    return new ASTNode('EMPTY');
+                } else if (token.type === TokenType.LPAREN) {
+                    this.consume();
+                    let expr = this.parseExpression();
+                    if (this.current().type !== TokenType.RPAREN) {
+                        throw new Error('Expected closing parenthesis');
+                    }
+                    this.consume();
+                    return expr;
+                } else {
+                    throw new Error(`Unexpected token: ${token.type}`);
+                }
+            }
+
+            parse() {
+                const ast = this.parseExpression();
+                if (this.current().type !== TokenType.EOF) {
+                    throw new Error('Unexpected tokens after expression');
+                }
+                return ast;
             }
         }
 
-        // Analyze pattern properties
-        function analyzePattern() {
-            const pattern = document.getElementById('langPattern').value;
-            const resultDiv = document.getElementById('langResult');
+        // Compute language from AST (generate sample strings)
+        function computeLanguageFromAST(ast, maxDepth = 4, maxStrings = 50) {
+            const result = new Set();
+            
+            function generate(node, depth) {
+                if (result.size >= maxStrings || depth > maxDepth) {
+                    return ['...'];
+                }
+                
+                switch (node.type) {
+                    case 'EMPTY':
+                        return [];
+                    
+                    case 'EPSILON':
+                        return ['ε'];
+                    
+                    case 'SYMBOL':
+                        return [node.value];
+                    
+                    case 'UNION':
+                        const leftStrings = generate(node.left, depth + 1);
+                        const rightStrings = generate(node.right, depth + 1);
+                        // Return as alternation with separator
+                        return [...leftStrings, '|', ...rightStrings];
+                    
+                    case 'CONCAT':
+                        const left = generate(node.left, depth + 1);
+                        const right = generate(node.right, depth + 1);
+                        const concatenated = [];
+                        
+                        // Split by OR operator
+                        const leftSides = [];
+                        const rightSides = [];
+                        let currentLeft = [];
+                        let currentRight = [];
+                        
+                        for (let l of left) {
+                            if (l === '|') {
+                                if (currentLeft.length > 0) leftSides.push([...currentLeft]);
+                                currentLeft = [];
+                            } else {
+                                currentLeft.push(l);
+                            }
+                        }
+                        if (currentLeft.length > 0) leftSides.push(currentLeft);
+                        
+                        for (let r of right) {
+                            if (r === '|') {
+                                if (currentRight.length > 0) rightSides.push([...currentRight]);
+                                currentRight = [];
+                            } else {
+                                currentRight.push(r);
+                            }
+                        }
+                        if (currentRight.length > 0) rightSides.push(currentRight);
+                        
+                        // If no OR on either side, treat as normal
+                        if (leftSides.length === 0) leftSides.push(left);
+                        if (rightSides.length === 0) rightSides.push(right);
+                        
+                        // Check if we have OR in the expression
+                        if (leftSides.length > 1 || rightSides.length > 1) {
+                            // Concatenate each side separately (OR keeps sides separate)
+                            for (let i = 0; i < leftSides.length; i++) {
+                                for (let l of leftSides[i]) {
+                                    for (let r of rightSides[i] || rightSides[0]) {
+                                        if (concatenated.length >= maxStrings) break;
+                                        if (l === '...' || r === '...') continue;
+                                        const str = (l === 'ε' ? '' : l) + (r === 'ε' ? '' : r);
+                                        concatenated.push(str === '' ? 'ε' : str);
+                                    }
+                                }
+                                if (i < leftSides.length - 1) {
+                                    concatenated.push('|');
+                                }
+                            }
+                        } else {
+                            // No OR - do POSITIONAL concatenation (pair-wise)
+                            const leftList = leftSides[0].filter(s => s !== '...');
+                            const rightList = rightSides[0].filter(s => s !== '...');
+                            const maxLen = Math.max(leftList.length, rightList.length);
+                            
+                            for (let i = 0; i < maxLen && concatenated.length < maxStrings; i++) {
+                                const l = leftList[i] || leftList[leftList.length - 1];
+                                const r = rightList[i] || rightList[rightList.length - 1];
+                                if (l === '...' || r === '...') continue;
+                                const str = (l === 'ε' ? '' : l) + (r === 'ε' ? '' : r);
+                                concatenated.push(str === '' ? 'ε' : str);
+                            }
+                            
+                            if (leftList.length < left.length || rightList.length < right.length) {
+                                concatenated.push('...');
+                            }
+                        }
+                        return concatenated;
+                    
+                    case 'STAR':
+                        const base = generate(node.left, depth + 1);
+                        
+                        // Check if base contains OR
+                        const hasOr = base.includes('|');
+                        
+                        if (hasOr) {
+                            // Split by OR
+                            const alternatives = [];
+                            let current = [];
+                            for (let b of base) {
+                                if (b === '|') {
+                                    if (current.length > 0) alternatives.push([...current]);
+                                    current = [];
+                                } else {
+                                    current.push(b);
+                                }
+                            }
+                            if (current.length > 0) alternatives.push(current);
+                            
+                            // Generate starred versions for each alternative
+                            const results = [];
+                            for (let alt of alternatives) {
+                                const starred = ['ε'];
+                                for (let i = 1; i <= 3 && starred.length < maxStrings; i++) {
+                                    const temp = [''];
+                                    for (let j = 0; j < i; j++) {
+                                        const newTemp = [];
+                                        for (let t of temp) {
+                                            for (let b of alt) {
+                                                if (b === '...') continue;
+                                                const str = t + (b === 'ε' ? '' : b);
+                                                newTemp.push(str);
+                                                if (newTemp.length >= maxStrings) break;
+                                            }
+                                            if (newTemp.length >= maxStrings) break;
+                                        }
+                                        temp.splice(0, temp.length, ...newTemp);
+                                    }
+                                    starred.push(...temp.map(s => s === '' ? 'ε' : s));
+                                }
+                                if (starred.length < maxStrings) starred.push('...');
+                                results.push(...starred);
+                                if (alt !== alternatives[alternatives.length - 1]) {
+                                    results.push('|');
+                                }
+                            }
+                            return results;
+                        } else {
+                            // Normal Kleene star
+                            const starred = ['ε'];
+                            for (let i = 1; i <= 3 && starred.length < maxStrings; i++) {
+                                const temp = [''];
+                                for (let j = 0; j < i; j++) {
+                                    const newTemp = [];
+                                    for (let t of temp) {
+                                        for (let b of base) {
+                                            if (b === '...') continue;
+                                            const str = t + (b === 'ε' ? '' : b);
+                                            newTemp.push(str);
+                                            if (newTemp.length >= maxStrings) break;
+                                        }
+                                        if (newTemp.length >= maxStrings) break;
+                                    }
+                                    temp.splice(0, temp.length, ...newTemp);
+                                }
+                                starred.push(...temp.map(s => s === '' ? 'ε' : s));
+                            }
+                            if (starred.length < maxStrings) starred.push('...');
+                            return starred;
+                        }
+                    
+                    case 'PLUS':
+                        const basePlus = generate(node.left, depth + 1);
+                        
+                        // Check if base contains OR
+                        const hasOrPlus = basePlus.includes('|');
+                        
+                        if (hasOrPlus) {
+                            // Split by OR
+                            const alternatives = [];
+                            let current = [];
+                            for (let b of basePlus) {
+                                if (b === '|') {
+                                    if (current.length > 0) alternatives.push([...current]);
+                                    current = [];
+                                } else {
+                                    current.push(b);
+                                }
+                            }
+                            if (current.length > 0) alternatives.push(current);
+                            
+                            // Generate positive closure versions for each alternative (NO EPSILON)
+                            const results = [];
+                            for (let alt of alternatives) {
+                                const plused = [];
+                                for (let i = 1; i <= 3 && plused.length < maxStrings; i++) {
+                                    const temp = [''];
+                                    for (let j = 0; j < i; j++) {
+                                        const newTemp = [];
+                                        for (let t of temp) {
+                                            for (let b of alt) {
+                                                if (b === '...') continue;
+                                                const str = t + (b === 'ε' ? '' : b);
+                                                newTemp.push(str);
+                                                if (newTemp.length >= maxStrings) break;
+                                            }
+                                            if (newTemp.length >= maxStrings) break;
+                                        }
+                                        temp.splice(0, temp.length, ...newTemp);
+                                    }
+                                    plused.push(...temp.map(s => s === '' ? 'ε' : s));
+                                }
+                                if (plused.length < maxStrings) plused.push('...');
+                                results.push(...plused);
+                                if (alt !== alternatives[alternatives.length - 1]) {
+                                    results.push('|');
+                                }
+                            }
+                            return results;
+                        } else {
+                            // Normal positive closure (starts from 1, not 0 - NO EPSILON)
+                            const plused = [];
+                            for (let i = 1; i <= 3 && plused.length < maxStrings; i++) {
+                                const temp = [''];
+                                for (let j = 0; j < i; j++) {
+                                    const newTemp = [];
+                                    for (let t of temp) {
+                                        for (let b of basePlus) {
+                                            if (b === '...') continue;
+                                            const str = t + (b === 'ε' ? '' : b);
+                                            newTemp.push(str);
+                                            if (newTemp.length >= maxStrings) break;
+                                        }
+                                        if (newTemp.length >= maxStrings) break;
+                                    }
+                                    temp.splice(0, temp.length, ...newTemp);
+                                }
+                                plused.push(...temp.map(s => s === '' ? 'ε' : s));
+                            }
+                            if (plused.length < maxStrings) plused.push('...');
+                            return plused;
+                        }
+                    
+                    default:
+                        return [];
+                }
+            }
+            
+            const strings = generate(ast, 0);
+            return [...new Set(strings)].slice(0, maxStrings);
+        }
+
+        // Main compute function
+        function computeLanguage() {
+            const input = document.getElementById('regexInput').value.trim();
+            const resultDiv = document.getElementById('calculatorResult');
+            
+            if (!input) {
+                resultDiv.innerHTML = '<div class="error">Please enter a regular expression.</div>';
+                return;
+            }
             
             try {
-                const analysis = analyzeRegexPattern(pattern);
-                resultDiv.innerHTML = `
-                    <div>Pattern Analysis:</div>
-                    <div style="color: #56E1E9">
-                        ${analysis.join('<br>')}
-                    </div>
-                `;
+                const tokens = tokenize(input);
+                const parser = new RegexParser(tokens);
+                const ast = parser.parse();
+                const language = computeLanguageFromAST(ast);
+                
+                if (language.length === 0) {
+                    resultDiv.innerHTML = `
+                        <div class="success"><strong>Language L(${input}):</strong></div>
+                        <div class="language-display">∅ (Empty Set - No strings in this language)</div>
+                    `;
+                } else {
+                    const displayStrings = language.map(s => {
+                        if (s === '|') {
+                            return '<span style="color: #BB63FF; font-weight: bold; margin: 0 10px;">OR</span>';
+                        }
+                        return `<span class="string-item ${s === 'ε' ? 'epsilon' : ''}">${s}</span>`;
+                    }).join('');
+                    
+                    resultDiv.innerHTML = `
+                        <div class="success"><strong>Language L(${input}):</strong></div>
+                        <div class="language-display">
+                            ${displayStrings}
+                        </div>
+                        <div style="margin-top: 15px; color: #bfe9ff;">
+                            <strong>Properties:</strong><br>
+                            • Total strings shown: ${language.filter(s => s !== '...' && s !== '|').length}<br>
+                            • Contains empty string (ε): ${language.includes('ε') ? 'Yes' : 'No'}<br>
+                            • Language is: ${language.includes('...') || ast.type === 'STAR' || ast.type === 'PLUS' || (ast.left && (ast.left.type === 'STAR' || ast.left.type === 'PLUS')) || (ast.right && (ast.right.type === 'STAR' || ast.right.type === 'PLUS')) ? 'Infinite' : 'Finite'}<br>
+                            • Regular Language: Yes (can be recognized by a finite automaton)
+                        </div>
+                    `;
+                }
             } catch (error) {
-                resultDiv.innerHTML = `Error: ${error.message}`;
-                resultDiv.style.color = '#ff6b6b';
+                resultDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
             }
         }
 
-        // Helper function to generate example strings
-        function generateExampleStrings(pattern) {
-            const examples = [];
+        // Helper functions
+        function insertSymbol(symbol) {
+            const input = document.getElementById('regexInput');
+            const pos = input.selectionStart;
+            const before = input.value.substring(0, pos);
+            const after = input.value.substring(pos);
             
-            // Handle basic patterns
-            if (pattern === '(a|b)*') {
-                examples.push('', 'a', 'b', 'ab', 'ba', 'aab', 'aba');
-            } else if (pattern === '(0|1)*') {
-                examples.push('', '0', '1', '01', '10', '001', '110');
-            } else if (pattern === 'a*b+') {
-                examples.push('b', 'ab', 'aab', 'aaab', 'bb', 'abb');
+            if (symbol === '(') {
+                input.value = before + '()' + after;
+                input.selectionStart = input.selectionEnd = pos + 1;
             } else {
-                examples.push('Pattern too complex for automatic generation');
+                input.value = before + symbol + after;
+                input.selectionStart = input.selectionEnd = pos + symbol.length;
             }
-            
-            return examples;
+            input.focus();
         }
 
-        // Helper function to analyze regex pattern
-        function analyzeRegexPattern(pattern) {
-            const analysis = [];
-            
-            // Check for common patterns
-            if (pattern.includes('*')) {
-                analysis.push('✓ Language is infinite');
-            }
-            if (pattern.includes('|')) {
-                analysis.push('✓ Language contains alternatives');
-            }
-            if (pattern.includes('+')) {
-                analysis.push('✓ Language requires at least one occurrence');
-            }
-            if (pattern.startsWith('^') && pattern.endsWith('$')) {
-                analysis.push('✓ Pattern requires exact match');
-            }
-            
-            // Add theoretical properties
-            analysis.push('✓ Regular language');
-            analysis.push('✓ Can be recognized by a finite automaton');
-            
-            return analysis;
+        function clearInput() {
+            document.getElementById('regexInput').value = '';
+            document.getElementById('calculatorResult').innerHTML = '<div style="color: #bfe9ff;">Results will appear here...</div>';
         }
+
+        function loadExample(example) {
+            document.getElementById('regexInput').value = example;
+            computeLanguage();
+        }
+
+        // Allow Enter key to compute
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('regexInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    computeLanguage();
+                }
+            });
+        });
     </script>
 </body>
 </html>
